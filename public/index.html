@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Messenger</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="chat">
+
+        <form id="message-form">
+            <div id="users">
+                <h2>Usuarios conectados:</h2>
+                <ul class="user-list" id="user-list" style="width: 210px; height: 1000px;"></ul>
+            </div>
+
+            <div id="chat" id="message-form">
+                <div id="chat-header">
+                    <h2 class="title">Chat privado</h2>
+                    <input type="text" id="recipient-input" placeholder="Buscar o empezar un chat">
+                </div>
+                <div ifd="messages-container">
+                    <div id="messages"></div>
+
+                </div>
+                <input type="text" id="message-input" class="message-text" placeholder="Escribe un mensaje aquí...">
+                <!-- <input type="file" id="file-input"> -->
+
+
+                <button type="submit" class="btn btn-primary">Enviar</button>
+
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io('http://localhost:3000');
+
+        $('#message-form').submit(event => {
+            event.preventDefault();
+            const fileInput = document.getElementById("file-input");
+            const recipient = $('#recipient-input').val();
+            const content = $('#message-input').val();
+            const message = { recipient, content };
+
+            socket.emit('message', message);
+
+            $('#message-input').val('');
+
+            // Agregar el mensaje enviado por el cliente emisor al chat
+            const sender = 'Yo';
+            const sentMessage = { sender, content };
+            $('#messages').append($('<p>').text(sentMessage.content));
+        });
+
+        socket.on('message', message => {
+            console.log(message);
+            const messageElement = $('<p>').text(message.content);
+            if (message.sender === 'Yo') {
+                messageElement.addClass('sent');
+            } else {
+                messageElement.addClass('received');
+            }
+            $('#messages').append(messageElement);
+        });
+
+        socket.on('connect', () => {
+            console.log('Conectado al servidor Socket.IO');
+            const username = prompt('Por favor, ingrese su nombre de usuario:');
+            socket.emit('join', username);
+        });
+
+        socket.on('users', users => {
+            console.log(users);
+            $('#users ul').empty();
+            users.forEach(user => {
+                $('#users ul').append($('<li>').text(user));
+            });
+        });
+
+        function displayMessage(message, sender) {
+            const messageContainer = document.createElement("div");
+            messageContainer.classList.add("message-container");
+            messageContainer.classList.add(sender === username ? "sent" : "received"); // Agregar clase según el remitente
+
+            const senderName = document.createElement("span");
+            senderName.classList.add("sender-name");
+            senderName.textContent = sender === username ? "Yo" : sender; // Mostrar "Yo" si el remitente es el usuario actual
+
+            const messageText = document.createElement("p");
+            messageText.classList.add("message-text");
+            messageText.textContent = message;
+
+            messageContainer.appendChild(senderName);
+            messageContainer.appendChild(messageText);
+            messagesContainer.appendChild(messageContainer);
+        }
+
+        function displayMessage(sender, message) {
+            if (message.trim() !== '') { // Verifica si el mensaje no está vacío
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+
+                const senderElement = document.createElement('span');
+                senderElement.classList.add('sender');
+                senderElement.innerText = sender;
+                messageElement.appendChild(senderElement);
+
+                const textElement = document.createElement('span');
+                textElement.classList.add('text');
+                textElement.innerText = message;
+                messageElement.appendChild(textElement);
+
+                const messagesContainer = document.getElementById('messages');
+                messagesContainer.appendChild(messageElement);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight; // Hace scroll hacia abajo automáticamente
+            }
+        }
+
+        const deleteBtns = document.querySelectorAll('.delete-btn');
+        deleteBtns.forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                const messageId = e.target.parentNode.getAttribute('data-message-id');
+                deleteMessage(messageId);
+            });
+        });
+        data.users.forEach(user => {
+            if (data.messages[user] && data.messages[user].length > 0) {
+                const userCard = document.createElement("div");
+                userCard.classList.add("user-card");
+                userCard.textContent = user;
+                userCard.addEventListener("click", () => {
+                    setRecipient(user);
+                });
+                userList.appendChild(userCard);
+            }
+        });
+
+    </script>
+</body>
+
+</html>
